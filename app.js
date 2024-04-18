@@ -1,17 +1,31 @@
-const WebSocket = require('ws');
+const WebSocketServer = require('websocket').server;
+const http = require('http');
 
-const wss = new WebSocket.Server({ port: 8080 });
+const server = http.createServer();
+server.listen(8080, () => {
+  console.log('WebSocket server is listening on port 8080');
+});
 
-wss.on('connection', function connection(ws) {
-  console.log('WebSocket connected');
+const wsServer = new WebSocketServer({
+  httpServer: server
+});
 
-  ws.on('message', function incoming(message) {
-    console.log('Received message:', message);
-    // Forward message to Flutter client
-    wss.clients.forEach(function each(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(message);
+wsServer.on('request', (request) => {
+  const connection = request.accept(null, request.origin);
+  console.log('WebSocket client connected');
+
+  connection.on('message', (message) => {
+    console.log('Received message:', message.utf8Data);
+
+    // Forward message to all clients except the sender
+    wsServer.connections.forEach((client) => {
+      if (client !== connection && client.connected) {
+        client.send(message.utf8Data);
       }
     });
+  });
+
+  connection.on('close', () => {
+    console.log('WebSocket client disconnected');
   });
 });
