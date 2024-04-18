@@ -1,33 +1,17 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+const WebSocket = require('ws');
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+const wss = new WebSocket.Server({ port: 8080 });
 
-const port = 3000;
+wss.on('connection', function connection(ws) {
+  console.log('WebSocket connected');
 
-app.use(express.static('public'));
-
-io.on('connection', (socket) => {
-  console.log('Flutter app connected');
-
-  socket.on('disconnect', () => {
-    console.log('Flutter app disconnected');
+  ws.on('message', function incoming(message) {
+    console.log('Received message:', message);
+    // Forward message to Flutter client
+    wss.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
   });
-});
-
-app.post('/pulsedata', (req, res) => {
-  const pulseData = req.body;
-  console.log('Received pulse data:', pulseData);
-
-  // Forward pulse data to Flutter app
-  io.emit('pulseData', pulseData);
-
-  res.send('Data received successfully');
-});
-
-server.listen(port, () => {
-  console.log(`Node.js server listening at http://localhost:${port}`);
 });
