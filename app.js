@@ -2,8 +2,10 @@ const WebSocketServer = require('websocket').server;
 const http = require('http');
 
 const server = http.createServer();
-server.listen(8080, () => {
-  console.log('WebSocket server is listening on port 8080');
+const PORT = process.env.PORT || 8080; // Use the provided port or default to 8080
+
+server.listen(PORT, () => {
+  console.log(`WebSocket server is listening on port ${PORT}`);
 });
 
 const wsServer = new WebSocketServer({
