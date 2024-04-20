@@ -1,33 +1,56 @@
-const WebSocketServer = require('websocket').server;
-const http = require('http');
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
-const server = http.createServer();
-const PORT = process.env.PORT || 8080; // Use the provided port or default to 8080
+const app = express();
+const PORT = 3000;
 
-server.listen(PORT, () => {
-  console.log(`WebSocket server is listening on port ${PORT}`);
+// Connect to MongoDB
+mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 });
 
-const wsServer = new WebSocketServer({
-  httpServer: server
+// Define schema and model for sensor data
+const sensorDataSchema = new mongoose.Schema({
+  value: Number,
+  timestamp: { type: Date, default: Date.now }
 });
 
-wsServer.on('request', (request) => {
-  const connection = request.accept(null, request.origin);
-  console.log('WebSocket client connected');
+const SensorData = mongoose.model('SensorData', sensorDataSchema);
 
-  connection.on('message', (message) => {
-    console.log('Received message:', message.utf8Data);
+// Middleware
+app.use(bodyParser.json());
 
-    // Forward message to all clients except the sender
-    wsServer.connections.forEach((client) => {
-      if (client !== connection && client.connected) {
-        client.send(message.utf8Data);
-      }
+// Route to receive data from NodeMCU
+app.post('/data', (req, res) => {
+  const { value } = req.body;
+
+  const newData = new SensorData({ value });
+  newData.save()
+    .then(() => {
+      console.log('Data saved successfully');
+      res.sendStatus(200);
+    })
+    .catch(err => {
+      console.error('Error saving data:', err);
+      res.sendStatus(500);
     });
-  });
+});
 
-  connection.on('close', () => {
-    console.log('WebSocket client disconnected');
+// Route to fetch data for Flutter app
+app.get('/data', (req, res) => {
+  SensorData.find({}, (err, data) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.sendStatus(500);
+    } else {
+      res.json(data);
+    }
   });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
