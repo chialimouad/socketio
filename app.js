@@ -1,65 +1,33 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
+const WebSocketServer = require('websocket').server;
+const http = require('http');
 
-const app = express();
-const PORT = 3000;
+const server = http.createServer();
+const PORT = process.env.PORT || 8080; // Use the provided port or default to 8080
 
-// Connect to MongoDB
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch((err) => {
-  console.error('Error connecting to MongoDB:', err);
-  process.exit(1); // Exit the process if unable to connect to MongoDB
+server.listen(PORT, () => {
+  console.log(`WebSocket server is listening on port ${PORT}`);
 });
 
-// Define schema and model for sensor data
-const sensorDataSchema = new mongoose.Schema({
-  value: Number,
-  timestamp: { type: Date, default: Date.now }
+const wsServer = new WebSocketServer({
+  httpServer: server
 });
 
-const SensorData = mongoose.model('SensorData', sensorDataSchema);
+wsServer.on('request', (request) => {
+  const connection = request.accept(null, request.origin);
+  console.log('WebSocket client connected');
 
-// Middleware
-app.use(bodyParser.json());
+  connection.on('message', (message) => {
+    console.log('Received message:', message.utf8Data);
 
-// Route to receive data from NodeMCU
-app.post('/data', (req, res) => {
-  const { value } = req.body;
-
-  if (!value) {
-    return res.status(400).json({ error: 'Value is required' });
-  }
-
-  const newData = new SensorData({ value });
-  newData.save()
-    .then(() => {
-      console.log('Data saved successfully');
-      res.sendStatus(200);
-    })
-    .catch(err => {
-      console.error('Error saving data:', err);
-      res.sendStatus(500);
+    // Forward message to all clients except the sender
+    wsServer.connections.forEach((client) => {
+      if (client !== connection && client.connected) {
+        client.send(message.utf8Data);
+      }
     });
-});
-
-// Route to fetch data for Flutter app
-app.get('/data', (req, res) => {
-  SensorData.find({}, (err, data) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-      res.sendStatus(500);
-    } else {
-      res.json(data);
-    }
   });
-});
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  connection.on('close', () => {
+    console.log('WebSocket client disconnected');
+  });
 });
