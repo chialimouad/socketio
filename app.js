@@ -6,7 +6,15 @@ const app = express();
 const PORT = 3000;
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb', );
+mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((err) => {
+  console.error('Error connecting to MongoDB:', err);
+  process.exit(1); // Exit the process if unable to connect to MongoDB
+});
 
 // Define schema and model for sensor data
 const sensorDataSchema = new mongoose.Schema({
@@ -22,6 +30,10 @@ app.use(bodyParser.json());
 // Route to receive data from NodeMCU
 app.post('/data', (req, res) => {
   const { value } = req.body;
+
+  if (!value) {
+    return res.status(400).json({ error: 'Value is required' });
+  }
 
   const newData = new SensorData({ value });
   newData.save()
