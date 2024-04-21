@@ -6,7 +6,7 @@ const app = express();
 const PORT = 8080;
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb', {
+mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbb', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
