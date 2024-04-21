@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080; // Use the environment port or default to 8080
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbb', {
