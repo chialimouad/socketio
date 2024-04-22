@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
-const PORT = process.env.PORT|| 3000;
+const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb').then(() => {
@@ -39,7 +39,7 @@ app.post('/data', (req, res) => {
       res.sendStatus(200);
     })
     .catch(err => {
-      console.error('Error save data:', err);
+      console.error('Error saving data:', err);
       res.sendStatus(500);
     });
 });
