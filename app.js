@@ -3,13 +3,12 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
-const port = 3000;
-
-// Connect to MongoDB
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbeatDB', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+const port = process.env.PORT || 3000;
+mongoose.createConnection('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbeatDB').on('open',()=>{
+    console.log("connected")
+}).on('error',()=>{
+    console.log("not connected")
+})
 
 // Define Heartbeat model
 const heartbeatSchema = new mongoose.Schema({
