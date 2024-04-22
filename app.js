@@ -39,7 +39,7 @@ app.post('/data', (req, res) => {
       res.sendStatus(200);
     })
     .catch(err => {
-      console.error('Error saving data:', err);
+      console.error('Error save data:', err);
       res.sendStatus(500);
     });
 });
