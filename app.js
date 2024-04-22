@@ -3,10 +3,10 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Use the environment port or default to 8080
+const PORT = process.env.PORT|| 3000;
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbb').then(() => {
+mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb').then(() => {
   console.log('Connected to MongoDB');
 }).catch((err) => {
   console.error('Error connecting to MongoDB:', err);
@@ -45,15 +45,14 @@ app.post('/data', (req, res) => {
 });
 
 // Route to fetch data for Flutter app
-app.get('/data', (req, res) => {
-  SensorData.find({}, (err, data) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-      res.sendStatus(500);
-    } else {
-      res.json(data);
-    }
-  });
+app.get('/data', async (req, res) => {
+  try {
+    const data = await SensorData.find({});
+    res.json(data);
+  } catch (err) {
+    console.error('Error fetching data:', err);
+    res.sendStatus(500);
+  }
 });
 
 // Start server
