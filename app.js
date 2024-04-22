@@ -6,12 +6,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartb').then(() => {
-  console.log('Connected to MongoDB');
-}).catch((err) => {
-  console.error('Error connecting to MongoDB:', err);
-  process.exit(1); // Exit the process if unable to connect to MongoDB
-});
+ mongoose.createConnection('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbb').on('open',()=>{
+    console.log("connected")
+}).on('error',()=>{
+    console.log("not connected")
+})
 
 // Define schema and model for sensor data
 const sensorDataSchema = new mongoose.Schema({
