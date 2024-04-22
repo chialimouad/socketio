@@ -3,58 +3,39 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = 3000;
 
 // Connect to MongoDB
- mongoose.createConnection('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbb').on('open',()=>{
-    console.log("connected")
-}).on('error',()=>{
-    console.log("not connected")
-})
-
-// Define schema and model for sensor data
-const sensorDataSchema = new mongoose.Schema({
-  value: Number,
-  timestamp: { type: Date, default: Date.now }
+mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbeatDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 });
 
-const SensorData = mongoose.model('SensorData', sensorDataSchema);
+// Define Heartbeat model
+const heartbeatSchema = new mongoose.Schema({
+  value: Number,
+  timestamp: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-// Middleware
+const Heartbeat = mongoose.model('Heartbeat', heartbeatSchema);
+
 app.use(bodyParser.json());
 
-// Route to receive data from NodeMCU
-app.post('/data', (req, res) => {
-  const { value } = req.body;
-
-  if (!value) {
-    return res.status(400).json({ error: 'Value is required' });
-  }
-
-  const newData = new SensorData({ value });
-  newData.save()
-    .then(() => {
-      console.log('Data saved successfully');
-      res.sendStatus(200);
-    })
-    .catch(err => {
-      console.error('Error saving data:', err);
-      res.sendStatus(500);
-    });
-});
-
-// Route to fetch data for Flutter app
-app.get('/data', async (req, res) => {
+// Route to receive heartbeat data
+app.post('/api/heartbeat', async (req, res) => {
   try {
-    const data = await SensorData.find({});
-    res.json(data);
-  } catch (err) {
-    console.error('Error fetching data:', err);
-    res.sendStatus(500);
+    const { heartbeat } = req.body;
+    const newHeartbeat = new Heartbeat({ value: heartbeat });
+    await newHeartbeat.save();
+    res.status(201).send('Heartbeat data received');
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
 });
