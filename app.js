@@ -25,7 +25,7 @@ const Heartbeat = mongoose.model('Heartbeat', heartbeatSchema);
 app.use(bodyParser.json());
 
 // Route to receive heartbeat data
-app.post('/api/heartbeat', async (req, res) => {
+app.post('/ap/heartbeat', async (req, res) => {
   try {
     const { heartbeat } = req.body;
     const newHeartbeat = new Heartbeat({ value: heartbeat });
