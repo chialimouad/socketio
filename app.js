@@ -11,7 +11,7 @@ wss.on('connection', (ws) => {
   
   ws.on('message', (message) => {
     console.log('Received heartbeat:', message);
-    // Handle heartbeat data here (store in database, etc.)
+    // Handle heartbeat data here (store in databayse, etc.)
   });
   
   ws.on('close', () => {
@@ -19,6 +19,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log('Server listening on port 3000');
+server.listen(process.env.PORT || 3000, () => {
+  console.log('Server listening on port ');
 });
