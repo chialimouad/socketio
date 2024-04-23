@@ -1,40 +1,24 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
+const http = require('http');
+const WebSocket = require('ws');
 
 const app = express();
-const port = process.env.PORT || 3000;
-mongoose.createConnection('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/heartbeatDB').on('open',()=>{
-    console.log("connected")
-}).on('error',()=>{
-    console.log("not connected")
-})
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-// Define Heartbeat model
-const heartbeatSchema = new mongoose.Schema({
-  value: Number,
-  timestamp: {
-    type: Date,
-    default: Date.now
-  }
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+  
+  ws.on('message', (message) => {
+    console.log('Received heartbeat:', message);
+    // Handle heartbeat data here (store in database, etc.)
+  });
+  
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
 });
 
-const Heartbeat = mongoose.model('Heartbeat', heartbeatSchema);
-
-app.use(bodyParser.json());
-
-// Route to receive heartbeat data
-app.post('/ap/heartbeat', async (req, res) => {
-  try {
-    const { heartbeat } = req.body;
-    const newHeartbeat = new Heartbeat({ value: heartbeat });
-    await newHeartbeat.save();
-    res.status(201).send('Heartbeat data received');
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+server.listen(3000, () => {
+  console.log('Server listening on port 3000');
 });
