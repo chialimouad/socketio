@@ -33,6 +33,17 @@ app.post('/api/data', async (req, res) => {
   }
 });
 
+// Route to handle GET requests for fetching data
+app.get('/api/data', async (req, res) => {
+  try {
+    const data = await Data.find();
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching data from MongoDB:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
