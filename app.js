@@ -2,8 +2,8 @@ const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 
 const app = express();
-const PORT = 3000;
-const mongoUri = 'mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/bp';
+const PORT = process.env.PORT ||3000;
+const mongoUri = 'mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/';
 
 app.use(express.json());
 
@@ -17,7 +17,7 @@ app.post('/data', async (req, res) => {
     await client.connect();
 
     // Insert data into MongoDB
-    const db = client.db('<dbname>');
+    const db = client.db('docotrs');
     const collection = db.collection('sensor_data');
     await collection.insertOne(data);
 
