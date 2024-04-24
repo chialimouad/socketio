@@ -1,32 +1,49 @@
 const express = require('express');
-const MongoClient = require('mongodb').MongoClient;
+const mongoose = require('mongoose');
 
 const app = express();
-const PORT = process.env.PORT ||3000;
+const PORT = process.env.PORT || 3000;
+
+// MongoDB connection URI
 const mongoUri = 'mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/';
+const dbName = 'doctors'; // Change to your database name
+
+// Define Mongoose schema
+const sensorDataSchema = new mongoose.Schema({
+  value: Number, // Assuming 'value' is the field you want to store
+  // Add more fields if needed
+});
+
+// Define Mongoose model
+const SensorData = mongoose.model('SensorData', sensorDataSchema);
 
 app.use(express.json());
+
+// Create a connection to MongoDB Atlas
+const connection = mongoose.createConnection(mongoUri + dbName, { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Handle connection events
+connection.on('connected', () => {
+  console.log('Connected to MongoDB Atlas');
+});
+
+connection.on('error', (err) => {
+  console.error('Error connecting to MongoDB Atlas:', err);
+});
 
 // Handle POST requests to /data
 app.post('/data', async (req, res) => {
   const data = req.body;
 
-  // Connect to MongoDB Atlas
-  const client = new MongoClient(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
   try {
-    await client.connect();
-
-    // Insert data into MongoDB
-    const db = client.db('docotrs');
-    const collection = db.collection('sensor_data');
-    await collection.insertOne(data);
+    // Create a new document based on the schema
+    const sensorData = new SensorData(data);
+    await sensorData.save();
 
     res.status(200).send('Data received and stored successfully');
   } catch (error) {
     console.error('Error storing data:', error);
     res.status(500).send('Error storing data');
-  } finally {
-    await client.close();
   }
 });
 
