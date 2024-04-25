@@ -5,8 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // MongoDB connection URI
-const mongoUri = 'mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/';
-const dbName = 'doctors'; // Change to your database name
+const mongoUri = 'mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/doctors';
 
 // Define Mongoose schema
 const sensorDataSchema = new mongoose.Schema({
@@ -20,7 +19,7 @@ const SensorData = mongoose.model('SensorData', sensorDataSchema);
 app.use(express.json());
 
 // Create a connection to MongoDB Atlas
-const connection = mongoose.createConnection(mongoUri + dbName, { useNewUrlParser: true, useUnifiedTopology: true });
+const connection = mongoose.createConnection(mongoUri);
 
 // Handle connection events
 connection.on('connected', () => {
