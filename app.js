@@ -1,31 +1,48 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+const PORT = process.env.PORT || 3000;
 
-io.on('connection', function(socket) {
-  console.log('A client connected');
-
-  socket.on('disconnect', function() {
-    console.log('A client disconnected');
-  });
+// MongoDB connection
+mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/doctors', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
 });
 
-server.listen(3000, function() {
-  console.log('Server is listening on port 3000');
+// Define a schema for pulse sensor data
+const pulseDataSchema = new mongoose.Schema({
+  pulseData: Number,
+  timestamp: { type: Date, default: Date.now }
+});
+const PulseData = mongoose.model('PulseData', pulseDataSchema);
+
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
+
+// Route to handle incoming pulse sensor data
+app.post('api/sensors/pulse', async (req, res) => {
+  try {
+    const { pulseData } = req.body;
+
+    // Create a new PulseData document
+    const newData = new PulseData({ pulseData });
+    await newData.save();
+
+    res.status(201).json({ message: 'Pulse data received and stored successfully' });
+  } catch (error) {
+    console.error('Error saving pulse data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-app.post('/data', function(req, res) {
-  let body = '';
-  req.on('data', chunk => {
-    body += chunk.toString(); // convert Buffer to string
-  });
-  req.on('end', () => {
-    console.log('Received data from NodeMCU:', body);
-    // Emit the data to all connected clients
-    io.emit('pulseData', body);
-  });
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
