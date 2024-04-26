@@ -2,44 +2,57 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB connection
-mongoose.connect('mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/doctors');
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB');
-});
-
-// Define a schema for pulse sensor data
-const pulseDataSchema = new mongoose.Schema({
-  pulseData: Number,
-  timestamp: { type: Date, default: Date.now }
-});
-const PulseData = mongoose.model('PulseData', pulseDataSchema);
-
-// Middleware to parse JSON bodies
+// Body parser middleware
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Route to handle incoming pulse sensor data
-app.post('api/sensors/pulse', async (req, res) => {
-  try {
-    const { pulseData } = req.body;
+// MongoDB Atlas connection URI
+const mongoURI = 'mongodb+srv://mouadchiali:mouadchiali@clustertestprojet.n7r4egf.mongodb.net/doctors';
 
-    // Create a new PulseData document
-    const newData = new PulseData({ pulseData });
-    await newData.save();
+// Connect to MongoDB Atlas
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Atlas connected'))
+  .catch(err => console.log('MongoDB Atlas connection error:', err));
 
-    res.status(201).json({ message: 'Pulse data received and stored successfully' });
-  } catch (error) {
-    console.error('Error saving pulse data:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// Define schema for sensor data
+const sensorDataSchema = new mongoose.Schema({
+  api_key: String,
+  sensor: String,
+  value1: Number,
+});
+
+// Create model for sensor data
+const SensorData = mongoose.model('SensorData', sensorDataSchema);
+
+// Route to handle incoming sensor data
+app.post('/update-sensor', (req, res) => {
+  const { api_key, sensor, value1 } = req.body;
+  console.log('Received API key:', api_key);
+  console.log('Sensor type:', sensor);
+  // Create a new document with the received data
+  const newData = new SensorData({
+    api_key,
+    sensor,
+    value1,
+  });
+
+  // Save the data to MongoDB Atlas
+  newData.save()
+    .then(() => {
+      console.log('Sensor data saved to MongoDB Atlas:', newData);
+      res.status(200).send('Data received and saved successfully');
+    })
+    .catch(err => {
+      console.error('Error saving sensor data:', err);
+      res.status(500).send('Error saving sensor data');
+    });
 });
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
