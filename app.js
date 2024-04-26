@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const { Board, Sensor } = require('johnny-five');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,45 +52,3 @@ app.post('/update-sensor', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-// Johnny-Five code to read sensor data and send it to Node.js server
-const board = new Board();
-
-board.on('ready', () => {
-  const sensor = new Sensor({
-    pin: 'A0',
-    freq: 1000, // Read every 1 second
-  });
-
-  sensor.on('change', () => {
-    const pulseValue = sensor.value;
-
-    // Send sensor data to Node.js server
-    sendDataToServer({
-      api_key: 'YOUR_API_KEY',
-      sensor: 'PulseSensor',
-      value1: pulseValue,
-    });
-  });
-});
-
-function sendDataToServer(data) {
-  // Make HTTP POST request to Node.js server
-  fetch('http://localhost:3000/update-sensor', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  })
-  .then(response => {
-    if (response.ok) {
-      console.log('Sensor data sent successfully');
-    } else {
-      console.error('Failed to send sensor data:', response.statusText);
-    }
-  })
-  .catch(error => {
-    console.error('Error sending sensor data:', error);
-  });
-}
